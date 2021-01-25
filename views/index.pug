@@ -5,3 +5,20 @@ html
     script(src='/script.js')
   body
     h1= message
+    if music.spotify.premium
+        a(href="/room/new") Create a room
+        p or enter a 6 digit room id here
+        form(action="/room/join" method="post")
+            input(type="text" name="roomid")
+    else if music.spotify.free
+        p unfortunately spotify free isnt supported yet.
+        p Im working on a way to make this work
+        p while you wait, borrow a premium account
+        a(href = "linkspot")
+    else if music.apple.premium
+        p unfortunately apple music isnt supported yet.
+        p while you wait, 
+        a(href ="/linkspot") Link your spotify premium account
+    else
+        p please link a valid music service
+        a(href = "/linkspot")

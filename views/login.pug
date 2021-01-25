@@ -1,0 +1,16 @@
+html
+  head
+    title= title
+    script(src="https://cdn.socket.io/socket.io-3.0.1.min.js")
+    script(src='/script.js')
+  body
+    h1 Login
+    h2= message
+    form(action=faction method="post")
+        p email
+        input(type="text" name="email") 
+        p password
+        input(type="password" name="password") 
+        input(type="submit")
+        
+    

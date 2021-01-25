@@ -72,20 +72,44 @@ app.use(passport.session());
 
 // create the homepage route at '/'
 app.get("/", (req, res) => {
-  res.render("index", {
-    title: "Hey",
-    message: "Home page. Go to /authrequired or /login or somethign liek that",
-  });
+  if (req.isAuthenticated()) {
+    console.log("hes already logged in!");
+
+    res.redirect("/rooms");
+  } else {
+    res.render("index", {
+      title: "Hey",
+      message: "You are not logged in. You need to log in kiddo",
+    });
+    console.log("Connect from " + req.sessionID);
+  }
 });
 
 // create the login get and post routes
+// various login pages
+
 app.get("/login", (req, res) => {
-  res.send(`You got the login page!\n`);
+  res.render("login", {
+    title: "Log in to Shareify",
+    message: req.query.reason,
+    r2: req.query.r2,
+  });
+});
+
+// create account page
+app.get("/create", (req, res) => {
+  res.render("signup", {
+    title: "Create an account",
+    message: "dont use a real password",
+  });
 });
 
 app.post("/login", (req, res, next) => {
+  console.log("in login");
   passport.authenticate("local", (err, user, info) => {
     if (info) {
+      console.log(info);
+      console.log("SOmething happened i think");
       return res.send(info.message);
     }
     if (err) {
@@ -95,19 +119,42 @@ app.post("/login", (req, res, next) => {
       return res.redirect("/login");
     }
     req.login(user, (err) => {
+      console.log("err");
+      console.log(err);
       if (err) {
         return next(err);
       }
-      return res.redirect("/authrequired");
+      return res.redirect("/rooms");
     });
   })(req, res, next);
 });
 
-app.get("/authrequired", (req, res) => {
+app.post("/signup", (req, res, next) => {
+  console.log("in Signup");
+  return res.redirect("/login" + "?reason=sign%20in" + "&r2=home");
+});
+
+app.get("/rooms", (req, res) => {
   if (req.isAuthenticated()) {
+    // this is the passport uid
+    console.log(req.session.passport.user);
+    let id = req.session.passport.user;
+    let este;
+    let uname;
+    // gets username or something
+    axios.get(`http://localhost:5000/users/${id}`).then((wha) => {
+      console.log(wha);
+      este = wha.data;
+      uname = este.email;
+      if ((este.spotify = "")) {
+        // do the login ting
+      }
+    });
+    axios.patch(`http://localhost:5000/users/${id}`, { spotify: "" });
     res.render("index", { title: "Hey", message: "you are auth!" });
   } else {
-    res.redirect("/");
+    console.log("user is not auth");
+    res.redirect("/login" + "?reason=noauth" + "&r2=rooms");
   }
 });
 
