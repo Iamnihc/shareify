@@ -132,6 +132,7 @@ app.post("/login", (req, res, next) => {
 app.post("/signup", (req, res, next) => {
   console.log("in Signup");
   return res.redirect("/login" + "?reason=sign%20in" + "&r2=home");
+  axios.patch(`http://localhost:5000/users/${id}`, { music: "" });
 });
 
 app.get("/rooms", (req, res) => {
@@ -150,8 +151,7 @@ app.get("/rooms", (req, res) => {
         // do the login ting
       }
     });
-    axios.patch(`http://localhost:5000/users/${id}`, { spotify: "" });
-    res.render("index", { title: "Hey", message: "you are auth!" });
+    res.render("index", { title: "Hey", message: "you are auth!",  });
   } else {
     console.log("user is not auth");
     res.redirect("/login" + "?reason=noauth" + "&r2=rooms");
