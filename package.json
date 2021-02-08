@@ -28,13 +28,14 @@
   "name": "shareify",
   "version": "1.0.0",
   "description": "discord sharing but more",
-  "main": "dist/index.js",
+  "main": "dist/server.js",
   "repository": "https://github.com/Iamnihc/shareify",
   "author": "Chinmai Srinivas / borb",
   "license": "MIT",
   "scripts": {
     "build": "tsc",
     "prestart": "yarn run build",
+    "dev": "tsc-watch --onSuccess \"node .\"",
     "start": "node .",
     "test": "echo \"Error: no test specified\" && exit 1",
     "json:server": "json-server --watch ./db/db.json --port 5000"
@@ -42,6 +43,7 @@
   "devDependencies": {
     "@types/express": "^4.17.11",
     "nodemon": "^2.0.7",
-    "ts-node": "^9.1.1"
+    "ts-node": "^9.1.1",
+    "tsc-watch": "^4.2.9"
   }
 }

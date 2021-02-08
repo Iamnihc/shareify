@@ -3,15 +3,18 @@ import express from "express";
 import path from "path";
 import { secrets } from "./secret";
 import ClientOAuth2 from "client-oauth2";
-
-// js stuff for now
-const session = require("express-session");
+import session from "express-session";
 import { v4 as uuidv4 } from "uuid";
-const app = express();
+import http from "http";
+import socketIO from "socket.io";
+import sessionFileStore from "session-file-store";
+
 const port = 8080; // default port to listen
-let http = require("http").Server(app);
-let io = require("socket.io")(http);
-const FileStore = require("session-file-store")(session);
+
+const app = express();
+let server = new http.Server(app);
+let io = new socketIO.Server(server);
+const FileStore = sessionFileStore(session);
 
 // fun stuff
 
@@ -33,7 +36,6 @@ const FileStore = require("session-file-store")(session);
 //     });
 //   })
 // );
-
 
 app.use(
   session({
@@ -97,13 +99,13 @@ app.get("/callback", function (req, res) {
     // Sign API requests on behalf of the current user.
     user.sign({
       method: "get",
-      url: "http://localhost:3000/",
+      url: `http://localhost:${port}/`,
     });
 
     // We should store the token into a database.
     return res.send(user.accessToken);
   });
 });
-const server = http.listen(3000, function () {
-  console.log("listening on *:3000");
+server.listen(port, function () {
+  console.log(`listening on *:${port}`);
 });

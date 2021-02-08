@@ -4,3 +4,4 @@ secret.ts
 db
 db/db.json
 sessions
+dist
