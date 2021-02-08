@@ -8,6 +8,13 @@ import { v4 as uuidv4 } from "uuid";
 import http from "http";
 import socketIO from "socket.io";
 import sessionFileStore from "session-file-store";
+import bodyParser from 'body-parser';
+import passport from "passport";
+import passportLocalStrategy from "passport-local";
+import axios from  'axios';
+import bcrypt from "bcryptjs";
+
+let LocalStrategy = passportLocalStrategy.Strategy
 
 const port = 8080; // default port to listen
 
@@ -16,26 +23,39 @@ let server = new http.Server(app);
 let io = new socketIO.Server(server);
 const FileStore = sessionFileStore(session);
 
-// fun stuff
 
-// var passport = require("passport"),
-//   LocalStrategy = require("passport-local").Strategy;
-// passport.use(
-//   new LocalStrategy(function (username: any, password: any, done: any) {
-//     User.findOne({ username: username }, function (err, user) {
-//       if (err) {
-//         return done(err);
-//       }
-//       if (!user) {
-//         return done(null, false, { message: "Incorrect username." });
-//       }
-//       if (!user.validPassword(password)) {
-//         return done(null, false, { message: "Incorrect password." });
-//       }
-//       return done(null, user);
-//     });
-//   })
-// );
+// configure passport.js to use the local strategy
+passport.use(
+  new LocalStrategy({ usernameField: "email" }, (email, password, done) => {
+    axios
+      .get(`http://localhost:5000/users?email=${email}`)
+      .then((res) => {
+        const user = res.data[0];
+        if (!user) {
+          return done(null, false, { message: "Invalid credentials.\n" });
+        }
+        if (!bcrypt.compareSync(password, user.password)) {
+          return done(null, false, { message: "Invalid credentials.\n" });
+        }
+        return done(null, user);
+      })
+      .catch((error) => done(error));
+  })
+);
+
+// tell passport how to serialize the user
+passport.serializeUser<any, any>((user, done:Function) => {
+  done(undefined, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+  axios
+    .get(`http://localhost:5000/users/${id}`)
+    .then((res) => done(null, res.data))
+    .catch((error) => done(error, false));
+});
+
+
 
 app.use(
   session({
@@ -67,11 +87,7 @@ io.on("connection", function (socket: any) {
   console.log("a user connected");
 });
 
-// start the express server
-// app.listen(port, () => {
-//   // tslint:disable-next-line:no-console
-//   console.log(`server started at http://localhost:${port}`);
-// });
+
 var spotifyAuth = new ClientOAuth2({
   clientId: secrets.spotify.id,
   clientSecret: secrets.spotify.secret,
@@ -80,7 +96,9 @@ var spotifyAuth = new ClientOAuth2({
   redirectUri: "http://localhost:3000/callback",
   scopes: secrets.spotify.scopeArr,
 });
-app.get("/login", function (req, res) {
+
+
+app.get("/spotlogin", function (req, res) {
   var uri = spotifyAuth.code.getUri();
 
   res.redirect(uri);
@@ -106,6 +124,9 @@ app.get("/callback", function (req, res) {
     return res.send(user.accessToken);
   });
 });
+
+
+
 server.listen(port, function () {
   console.log(`listening on *:${port}`);
 });
