@@ -8,13 +8,14 @@ import { v4 as uuidv4 } from "uuid";
 import http from "http";
 import socketIO from "socket.io";
 import sessionFileStore from "session-file-store";
-import bodyParser from 'body-parser';
+import bodyParser from "body-parser";
 import passport from "passport";
 import passportLocalStrategy from "passport-local";
-import axios from  'axios';
+import axios from "axios";
 import bcrypt from "bcryptjs";
+import { isTypeAliasDeclaration } from "typescript";
 
-let LocalStrategy = passportLocalStrategy.Strategy
+let LocalStrategy = passportLocalStrategy.Strategy;
 
 const port = 8080; // default port to listen
 
@@ -23,6 +24,79 @@ let server = new http.Server(app);
 let io = new socketIO.Server(server);
 const FileStore = sessionFileStore(session);
 
+class Song {
+  title: string;
+  artist: string;
+  album: string;
+  duration: number;
+  spotifyUri: string;
+  appleUri: string;
+  tidalUri: string;
+}
+
+interface MusicService {
+  keyed: boolean;
+  keyobject: Record<any, any>;
+  validate(keys:any):void;
+  findSongByName(search: string): Song;
+  playSong(toPlay: Song): any;
+}
+
+class Spotify implements MusicService {
+  keyobject: Record<any, any>;
+  keyed: boolean;
+  constructor() {
+    this.keyed = false;
+  }
+  validate(keys: any): void {
+    throw new Error("Method not implemented.");
+  }
+
+  playSong(toPlay: Song) {
+    throw new Error("Method not implemented.");
+  }
+
+  findSongByName(search: string): Song {
+    throw new Error("Method not implemented.");
+  }
+}
+class Tidal implements MusicService {
+  validate(keys: any): void {
+    throw new Error("Method not implemented.");
+  }
+  keyobject: Record<any, any>;
+  playSong(toPlay: Song) {
+    throw new Error("Method not implemented.");
+  }
+  keyed: boolean;
+  findSongByName(search: string): Song {
+    throw new Error("Method not implemented.");
+  }
+}
+
+class Apple implements MusicService {
+  validate(keys: any): void {
+    throw new Error("Method not implemented.");
+  }
+  keyobject: Record<any, any>;
+  playSong(toPlay: Song) {
+    throw new Error("Method not implemented.");
+  }
+  keyed: boolean;
+  findSongByName(search: string): Song {
+    throw new Error("Method not implemented.");
+  }
+}
+
+class User {
+  music = {
+    spotify: new Spotify(),
+    tidal: new Tidal(),
+    applie: new Apple(),
+  };
+  default = this.music.spotify;
+  constructor() {}
+}
 
 // configure passport.js to use the local strategy
 passport.use(
@@ -44,7 +118,7 @@ passport.use(
 );
 
 // tell passport how to serialize the user
-passport.serializeUser<any, any>((user, done:Function) => {
+passport.serializeUser<any, any>((user, done: Function) => {
   done(undefined, user.id);
 });
 
@@ -54,8 +128,6 @@ passport.deserializeUser((id, done) => {
     .then((res) => done(null, res.data))
     .catch((error) => done(error, false));
 });
-
-
 
 app.use(
   session({
@@ -87,7 +159,6 @@ io.on("connection", function (socket: any) {
   console.log("a user connected");
 });
 
-
 var spotifyAuth = new ClientOAuth2({
   clientId: secrets.spotify.id,
   clientSecret: secrets.spotify.secret,
@@ -96,7 +167,6 @@ var spotifyAuth = new ClientOAuth2({
   redirectUri: "http://localhost:3000/callback",
   scopes: secrets.spotify.scopeArr,
 });
-
 
 app.get("/spotlogin", function (req, res) {
   var uri = spotifyAuth.code.getUri();
@@ -124,8 +194,6 @@ app.get("/callback", function (req, res) {
     return res.send(user.accessToken);
   });
 });
-
-
 
 server.listen(port, function () {
   console.log(`listening on *:${port}`);
